@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeFlow</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet">
+  <style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .nav-link { cursor: pointer; transition: color 0.2s; }
+  .nav-link:hover, .nav-link.active-nav { color: #E07A2F; }
+  .card-hover { transition: transform 0.3s, box-shadow 0.3s; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); }
+  .fade-in { animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .stagger-1 { animation-delay: 0.1s; animation-fill-mode: both; }
+  .stagger-2 { animation-delay: 0.2s; animation-fill-mode: both; }
+  .stagger-3 { animation-delay: 0.3s; animation-fill-mode: both; }
+  .stagger-4 { animation-delay: 0.4s; animation-fill-mode: both; }
+  .tracking-step { position: relative; padding-left: 2.5rem; padding-bottom: 1.5rem; }
+  .tracking-step::before { content: ''; position: absolute; left: 0.6rem; top: 1.8rem; width: 2px; height: calc(100% - 1.2rem); background: #d1d5db; }
+  .tracking-step:last-child::before { display: none; }
+  .tracking-dot { width: 1.4rem; height: 1.4rem; border-radius: 50%; position: absolute; left: 0; top: 0.2rem; border: 2px solid #d1d5db; background: #fff; }
+  .tracking-dot.completed { background: #E07A2F; border-color: #E07A2F; }
+  .tracking-dot.current { background: #fff; border-color: #E07A2F; box-shadow: 0 0 0 4px rgba(224,122,47,0.2); }
+  .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.75rem; color: #fff; z-index: 9999; animation: slideUp 0.4s ease, slideDown 0.4s ease 2.6s forwards; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
+  .mobile-menu { display: none; }
+  .mobile-menu.open { display: flex; }
+  input:focus, textarea:focus, select:focus { outline: none; box-shadow: 0 0 0 3px rgba(224,122,47,0.3); }
+  .btn-primary { transition: background 0.2s, transform 0.15s; }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+</style>
+  <script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        heading: ['Playfair Display', 'serif'],
+        body: ['DM Sans', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full font-body" style="background:#FAF7F2; color:#2D2A26;">
+  <div id="app" class="h-full w-full overflow-auto"><!-- NAV -->
+   <header id="main-nav" class="sticky top-0 z-50 border-b" style="background:rgba(250,247,242,0.95); backdrop-filter:blur(8px); border-color:#E8E2D9;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+     <div id="nav-logo" class="font-heading font-bold text-xl cursor-pointer" style="color:#E07A2F;" onclick="navigateTo('home')">
+      TradeFlow
+     </div>
+     <nav class="hidden md:flex items-center gap-8 text-sm font-medium" style="color:#6B6560;"><span class="nav-link active-nav" data-page="home" onclick="navigateTo('home')">Home</span> <span class="nav-link" data-page="products" onclick="navigateTo('products')">Products</span> <span class="nav-link" data-page="services" onclick="navigateTo('services')">Services</span> <span class="nav-link" data-page="tracking" onclick="navigateTo('tracking')">Tracking</span> <span class="nav-link" data-page="about" onclick="navigateTo('about')">About</span> <span class="nav-link" data-page="contact" onclick="navigateTo('contact')">Contact</span>
+     </nav><button class="md:hidden" onclick="toggleMobileMenu()" aria-label="Toggle menu"><i data-lucide="menu" style="width:24px;height:24px;color:#2D2A26;"></i></button>
+    </div>
+    <div id="mobile-menu" class="mobile-menu flex-col md:hidden px-4 pb-4 gap-3 text-sm font-medium" style="color:#6B6560;"><span class="nav-link py-2 border-b" style="border-color:#E8E2D9;" data-page="home" onclick="navigateTo('home')">Home</span> <span class="nav-link py-2 border-b" style="border-color:#E8E2D9;" data-page="products" onclick="navigateTo('products')">Products</span> <span class="nav-link py-2 border-b" style="border-color:#E8E2D9;" data-page="services" onclick="navigateTo('services')">Services</span> <span class="nav-link py-2 border-b" style="border-color:#E8E2D9;" data-page="tracking" onclick="navigateTo('tracking')">Tracking</span> <span class="nav-link py-2 border-b" style="border-color:#E8E2D9;" data-page="about" onclick="navigateTo('about')">About</span> <span class="nav-link py-2" data-page="contact" onclick="navigateTo('contact')">Contact</span>
+    </div>
+   </header><!-- HOME -->
+   <div id="page-home" class="page active"><!-- Hero -->
+    <section class="relative overflow-hidden" style="background: linear-gradient(135deg, #2D2A26 0%, #4A3728 100%);">
+     <div class="absolute inset-0 opacity-10">
+      <svg width="100%" height="100%">
+       <defs>
+        <pattern id="grid" width="40" height="40" patternunits="userSpaceOnUse">
+         <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#E07A2F" stroke-width="0.5" />
+        </pattern>
+       </defs><rect width="100%" height="100%" fill="url(#grid)" />
+      </svg>
+     </div>
+     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 relative z-10">
+      <div class="max-w-2xl fade-in"><span class="inline-block px-3 py-1 rounded-full text-xs font-medium mb-6" style="background:rgba(224,122,47,0.2); color:#E07A2F;">Trade &amp; Logistics Platform</span>
+       <h1 id="hero-headline" class="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6" style="color:#FAF7F2;">Global Trade, Simplified.</h1>
+       <p id="hero-subtext" class="text-lg mb-8" style="color:#B8B0A6;">Buy, sell, and ship worldwide with our integrated trade and logistics platform. From product sourcing to doorstep delivery.</p>
+       <div class="flex flex-wrap gap-4"><button class="btn-primary px-6 py-3 rounded-lg font-medium text-sm" style="background:#E07A2F; color:#fff;" onclick="navigateTo('products')">Browse Products</button> <button class="btn-primary px-6 py-3 rounded-lg font-medium text-sm border" style="border-color:#6B6560; color:#FAF7F2;" onclick="navigateTo('tracking')">Track Shipment</button>
+       </div>
+      </div>
+     </div>
+    </section><!-- Categories -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+     <h2 class="font-heading text-2xl sm:text-3xl font-bold mb-8" style="color:#2D2A26;">Product Categories</h2>
+     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="card-hover fade-in stagger-1 rounded-xl p-6 text-center cursor-pointer" style="background:#fff; border:1px solid #E8E2D9;" onclick="filterByCategory('Electronics')">
+       <div class="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="cpu" style="color:#E07A2F;width:24px;height:24px;"></i>
+       </div><span class="text-sm font-medium">Electronics</span>
+      </div>
+      <div class="card-hover fade-in stagger-2 rounded-xl p-6 text-center cursor-pointer" style="background:#fff; border:1px solid #E8E2D9;" onclick="filterByCategory('Textiles')">
+       <div class="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="shirt" style="color:#E07A2F;width:24px;height:24px;"></i>
+       </div><span class="text-sm font-medium">Textiles</span>
+      </div>
+      <div class="card-hover fade-in stagger-3 rounded-xl p-6 text-center cursor-pointer" style="background:#fff; border:1px solid #E8E2D9;" onclick="filterByCategory('Machinery')">
+       <div class="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="cog" style="color:#E07A2F;width:24px;height:24px;"></i>
+       </div><span class="text-sm font-medium">Machinery</span>
+      </div>
+      <div class="card-hover fade-in stagger-4 rounded-xl p-6 text-center cursor-pointer" style="background:#fff; border:1px solid #E8E2D9;" onclick="filterByCategory('Agriculture')">
+       <div class="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="leaf" style="color:#E07A2F;width:24px;height:24px;"></i>
+       </div><span class="text-sm font-medium">Agriculture</span>
+      </div>
+     </div>
+    </section><!-- Featured Products -->
+    <section style="background:#fff; border-top:1px solid #E8E2D9; border-bottom:1px solid #E8E2D9;">
+     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div class="flex items-center justify-between mb-8">
+       <h2 class="font-heading text-2xl sm:text-3xl font-bold" style="color:#2D2A26;">Featured Products</h2><button class="text-sm font-medium flex items-center gap-1" style="color:#E07A2F;" onclick="navigateTo('products')">View All <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="featured-products-grid"></div>
+     </div>
+    </section><!-- Services Overview -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+     <h2 class="font-heading text-2xl sm:text-3xl font-bold mb-3" style="color:#2D2A26;">Logistics Services</h2>
+     <p class="mb-8" style="color:#6B6560;">End-to-end shipping and cargo solutions for businesses of all sizes.</p>
+     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div class="card-hover fade-in stagger-1 rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="truck" style="color:#E07A2F;width:20px;height:20px;"></i>
+       </div>
+       <h3 class="font-medium text-lg mb-2">Domestic Shipping</h3>
+       <p class="text-sm" style="color:#6B6560;">Fast and reliable delivery across the country with real-time tracking.</p>
+      </div>
+      <div class="card-hover fade-in stagger-2 rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="globe" style="color:#E07A2F;width:20px;height:20px;"></i>
+       </div>
+       <h3 class="font-medium text-lg mb-2">International Shipping</h3>
+       <p class="text-sm" style="color:#6B6560;">Global freight solutions with customs clearance and documentation.</p>
+      </div>
+      <div class="card-hover fade-in stagger-3 rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="package" style="color:#E07A2F;width:20px;height:20px;"></i>
+       </div>
+       <h3 class="font-medium text-lg mb-2">Cargo Handling</h3>
+       <p class="text-sm" style="color:#6B6560;">Specialized handling for fragile, oversized, and bulk cargo shipments.</p>
+      </div>
+     </div>
+    </section>
+   </div><!-- PRODUCTS -->
+   <div id="page-products" class="page">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+     <h1 class="font-heading text-3xl font-bold mb-6">Products</h1><!-- Filters -->
+     <div class="flex flex-col sm:flex-row gap-4 mb-8">
+      <div class="relative flex-1"><i data-lucide="search" style="width:18px;height:18px;color:#6B6560;" class="absolute left-3 top-1/2 -translate-y-1/2"></i> <input type="text" id="product-search" placeholder="Search products..." class="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm" style="background:#fff; border:1px solid #E8E2D9;" oninput="filterProducts()">
+      </div><select id="category-filter" class="px-4 py-2.5 rounded-lg text-sm" style="background:#fff; border:1px solid #E8E2D9;" onchange="filterProducts()"> <option value="">All Categories</option> <option value="Electronics">Electronics</option> <option value="Textiles">Textiles</option> <option value="Machinery">Machinery</option> <option value="Agriculture">Agriculture</option> </select> <select id="price-filter" class="px-4 py-2.5 rounded-lg text-sm" style="background:#fff; border:1px solid #E8E2D9;" onchange="filterProducts()"> <option value="">Any Price</option> <option value="0-100">Under $100</option> <option value="100-500">$100 – $500</option> <option value="500-9999">$500+</option> </select>
+     </div>
+     <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+   </div><!-- PRODUCT DETAIL -->
+   <div id="page-product-detail" class="page">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"><button class="flex items-center gap-2 text-sm mb-6" style="color:#6B6560;" onclick="navigateTo('products')"><i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Products</button>
+     <div id="product-detail-content" class="grid grid-cols-1 lg:grid-cols-2 gap-10"></div>
+     <div class="mt-16">
+      <h3 class="font-heading text-xl font-bold mb-6">Related Products</h3>
+      <div id="related-products" class="grid grid-cols-1 sm:grid-cols-3 gap-6"></div>
+     </div>
+    </div>
+   </div><!-- ORDER -->
+   <div id="page-order" class="page">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10"><button class="flex items-center gap-2 text-sm mb-6" style="color:#6B6560;" onclick="navigateTo('products')"><i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back</button>
+     <div class="rounded-xl p-6 sm:p-8" style="background:#fff; border:1px solid #E8E2D9;">
+      <h1 class="font-heading text-2xl font-bold mb-6">Place Order</h1>
+      <div id="order-product-summary" class="mb-6 p-4 rounded-lg" style="background:#FAF7F2; border:1px solid #E8E2D9;"></div>
+      <form id="order-form" onsubmit="submitOrder(event)" class="space-y-4">
+       <div><label for="order-name" class="block text-sm font-medium mb-1">Full Name</label> <input type="text" id="order-name" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+       </div>
+       <div><label for="order-phone" class="block text-sm font-medium mb-1">Phone Number</label> <input type="tel" id="order-phone" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+       </div>
+       <div><label for="order-address" class="block text-sm font-medium mb-1">Delivery Address</label> <textarea id="order-address" rows="2" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;"></textarea>
+       </div><input type="hidden" id="order-product-id"> <input type="hidden" id="order-product-name">
+       <div><label for="order-qty" class="block text-sm font-medium mb-1">Quantity</label> <input type="number" id="order-qty" min="1" value="1" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+       </div>
+       <div><label for="order-delivery" class="block text-sm font-medium mb-1">Delivery Method</label> <select id="order-delivery" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;"> <option value="delivery">Delivery</option> <option value="pickup">Pickup</option> </select>
+       </div><button type="submit" id="order-submit-btn" class="btn-primary w-full py-3 rounded-lg font-medium text-sm" style="background:#E07A2F; color:#fff;">Place Order</button>
+      </form>
+      <div id="order-success" class="hidden text-center py-8">
+       <div class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="check-circle" style="color:#E07A2F;width:32px;height:32px;"></i>
+       </div>
+       <h2 class="font-heading text-xl font-bold mb-2">Order Placed!</h2>
+       <p class="text-sm mb-1" style="color:#6B6560;">Your tracking ID:</p>
+       <p id="order-tracking-id" class="font-mono font-bold text-lg" style="color:#E07A2F;"></p><button class="btn-primary mt-6 px-6 py-2.5 rounded-lg text-sm font-medium" style="background:#E07A2F; color:#fff;" onclick="goToTrackingWithId()">Track Order</button>
+      </div>
+     </div>
+    </div>
+   </div><!-- TRACKING -->
+   <div id="page-tracking" class="page">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+     <h1 class="font-heading text-3xl font-bold mb-2">Track Your Shipment</h1>
+     <p class="mb-8 text-sm" style="color:#6B6560;">Enter your tracking ID to see the current status of your order.</p>
+     <div class="flex gap-3 mb-8"><input type="text" id="tracking-input" placeholder="e.g. TF-A1B2C3" class="flex-1 px-4 py-2.5 rounded-lg text-sm" style="background:#fff; border:1px solid #E8E2D9;"> <button class="btn-primary px-6 py-2.5 rounded-lg text-sm font-medium" style="background:#E07A2F; color:#fff;" onclick="lookupTracking()">Track</button>
+     </div>
+     <div id="tracking-result" class="hidden rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;"></div>
+     <div id="tracking-not-found" class="hidden rounded-xl p-6 text-center" style="background:#fff; border:1px solid #E8E2D9;"><i data-lucide="search-x" style="width:40px;height:40px;color:#6B6560;" class="mx-auto mb-3"></i>
+      <p class="font-medium">No order found</p>
+      <p class="text-sm" style="color:#6B6560;">Check your tracking ID and try again.</p>
+     </div>
+    </div>
+   </div><!-- SERVICES -->
+   <div id="page-services" class="page">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+     <h1 class="font-heading text-3xl font-bold mb-2">Logistics Services</h1>
+     <p class="mb-10" style="color:#6B6560;">Comprehensive shipping and cargo solutions tailored to your needs.</p>
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+      <div class="card-hover rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+         <i data-lucide="truck" style="color:#E07A2F;width:20px;height:20px;"></i>
+        </div>
+        <h3 class="font-heading text-lg font-bold">Domestic Shipping</h3>
+       </div>
+       <p class="text-sm" style="color:#6B6560;">Nationwide delivery with express and standard options. Door-to-door service with real-time GPS tracking and automated notifications.</p>
+      </div>
+      <div class="card-hover rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+         <i data-lucide="globe" style="color:#E07A2F;width:20px;height:20px;"></i>
+        </div>
+        <h3 class="font-heading text-lg font-bold">International Shipping</h3>
+       </div>
+       <p class="text-sm" style="color:#6B6560;">Global freight by air, sea, and land. Full customs clearance support, documentation handling, and compliance management.</p>
+      </div>
+      <div class="card-hover rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+         <i data-lucide="package" style="color:#E07A2F;width:20px;height:20px;"></i>
+        </div>
+        <h3 class="font-heading text-lg font-bold">Cargo Handling</h3>
+       </div>
+       <p class="text-sm" style="color:#6B6560;">Specialized equipment and trained teams for fragile, oversized, and temperature-sensitive cargo. Insured and secure.</p>
+      </div>
+      <div class="card-hover rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+         <i data-lucide="warehouse" style="color:#E07A2F;width:20px;height:20px;"></i>
+        </div>
+        <h3 class="font-heading text-lg font-bold">Warehousing</h3>
+       </div>
+       <p class="text-sm" style="color:#6B6560;">Secure storage facilities with inventory management, pick-and-pack services, and seamless integration with shipping.</p>
+      </div>
+     </div><!-- Quote Form -->
+     <div class="max-w-xl mx-auto rounded-xl p-6 sm:p-8" style="background:#fff; border:1px solid #E8E2D9;">
+      <h2 class="font-heading text-xl font-bold mb-6">Request a Shipping Quote</h2>
+      <form id="quote-form" onsubmit="submitQuote(event)" class="space-y-4">
+       <div><label for="quote-origin" class="block text-sm font-medium mb-1">Origin</label> <input type="text" id="quote-origin" required placeholder="City, Country" class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+       </div>
+       <div><label for="quote-dest" class="block text-sm font-medium mb-1">Destination</label> <input type="text" id="quote-dest" required placeholder="City, Country" class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+       </div>
+       <div class="grid grid-cols-2 gap-4">
+        <div><label for="quote-weight" class="block text-sm font-medium mb-1">Weight (kg)</label> <input type="number" id="quote-weight" required min="0.1" step="0.1" class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+        </div>
+        <div><label for="quote-type" class="block text-sm font-medium mb-1">Cargo Type</label> <select id="quote-type" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;"> <option value="standard">Standard</option> <option value="fragile">Fragile</option> <option value="oversized">Oversized</option> <option value="temperature">Temperature-sensitive</option> </select>
+        </div>
+       </div><button type="submit" id="quote-submit-btn" class="btn-primary w-full py-3 rounded-lg font-medium text-sm" style="background:#E07A2F; color:#fff;">Get Quote</button>
+      </form>
+      <div id="quote-result" class="hidden mt-6 p-4 rounded-lg text-center" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+       <p class="text-sm" style="color:#6B6560;">Estimated shipping cost</p>
+       <p id="quote-price" class="font-heading text-2xl font-bold mt-1" style="color:#E07A2F;"></p>
+       <p class="text-xs mt-2" style="color:#6B6560;">This is a demo estimate. Final pricing may vary.</p>
+      </div>
+     </div>
+    </div>
+   </div><!-- ABOUT -->
+   <div id="page-about" class="page">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+     <h1 class="font-heading text-3xl font-bold mb-6">About TradeFlow</h1>
+     <div class="rounded-xl p-6 sm:p-8 mb-8" style="background:#fff; border:1px solid #E8E2D9;">
+      <h2 class="font-heading text-xl font-bold mb-3">Our Mission</h2>
+      <p id="about-mission" class="leading-relaxed" style="color:#6B6560;">Connecting traders with reliable logistics to create a seamless global commerce experience. We believe trade should be accessible, transparent, and efficient for everyone.</p>
+     </div>
+     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+      <div class="rounded-xl p-6 text-center" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="eye" style="color:#E07A2F;width:22px;height:22px;"></i>
+       </div>
+       <h3 class="font-medium mb-2">Transparency</h3>
+       <p class="text-sm" style="color:#6B6560;">Real-time tracking and clear pricing with no hidden fees.</p>
+      </div>
+      <div class="rounded-xl p-6 text-center" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="shield" style="color:#E07A2F;width:22px;height:22px;"></i>
+       </div>
+       <h3 class="font-medium mb-2">Reliability</h3>
+       <p class="text-sm" style="color:#6B6560;">Trusted by thousands of businesses across the globe.</p>
+      </div>
+      <div class="rounded-xl p-6 text-center" style="background:#fff; border:1px solid #E8E2D9;">
+       <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+        <i data-lucide="zap" style="color:#E07A2F;width:22px;height:22px;"></i>
+       </div>
+       <h3 class="font-medium mb-2">Speed</h3>
+       <p class="text-sm" style="color:#6B6560;">Optimized routes and express options for time-sensitive cargo.</p>
+      </div>
+     </div>
+    </div>
+   </div><!-- CONTACT -->
+   <div id="page-contact" class="page">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+     <h1 class="font-heading text-3xl font-bold mb-6">Contact Us</h1>
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div>
+       <div class="space-y-4 mb-8">
+        <div class="flex items-center gap-3">
+         <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+          <i data-lucide="mail" style="color:#E07A2F;width:18px;height:18px;"></i>
+         </div>
+         <div>
+          <p class="text-sm font-medium">Email</p>
+          <p class="text-sm" style="color:#6B6560;">hello@tradeflow.demo</p>
+         </div>
+        </div>
+        <div class="flex items-center gap-3">
+         <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+          <i data-lucide="phone" style="color:#E07A2F;width:18px;height:18px;"></i>
+         </div>
+         <div>
+          <p class="text-sm font-medium">Phone</p>
+          <p class="text-sm" style="color:#6B6560;">+1 (555) 987-6543</p>
+         </div>
+        </div>
+        <div class="flex items-center gap-3">
+         <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(224,122,47,0.1);">
+          <i data-lucide="map-pin" style="color:#E07A2F;width:18px;height:18px;"></i>
+         </div>
+         <div>
+          <p class="text-sm font-medium">Location</p>
+          <p class="text-sm" style="color:#6B6560;">123 Commerce St, Trade City</p>
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="rounded-xl p-6" style="background:#fff; border:1px solid #E8E2D9;">
+       <h2 class="font-medium text-lg mb-4">Send a Message</h2>
+       <form id="contact-form" onsubmit="submitContact(event)" class="space-y-4">
+        <div><label for="contact-name" class="block text-sm font-medium mb-1">Name</label> <input type="text" id="contact-name" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+        </div>
+        <div><label for="contact-email" class="block text-sm font-medium mb-1">Email</label> <input type="email" id="contact-email" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;">
+        </div>
+        <div><label for="contact-msg" class="block text-sm font-medium mb-1">Message</label> <textarea id="contact-msg" rows="4" required class="w-full px-4 py-2.5 rounded-lg text-sm" style="background:#FAF7F2; border:1px solid #E8E2D9;"></textarea>
+        </div><button type="submit" id="contact-submit-btn" class="btn-primary w-full py-3 rounded-lg font-medium text-sm" style="background:#E07A2F; color:#fff;">Send Message</button>
+       </form>
+       <div id="contact-success" class="hidden text-center py-6"><i data-lucide="check-circle" style="color:#E07A2F;width:32px;height:32px;" class="mx-auto mb-2"></i>
+        <p class="font-medium">Message sent!</p>
+        <p class="text-sm" style="color:#6B6560;">We'll get back to you soon.</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div><!-- FOOTER -->
+   <footer style="background:#2D2A26; color:#B8B0A6;" class="mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+      <div>
+       <div id="footer-logo" class="font-heading font-bold text-lg mb-3" style="color:#E07A2F;">
+        TradeFlow
+       </div>
+       <p class="text-sm">Your trusted partner for global trade and logistics solutions.</p>
+      </div>
+      <div>
+       <h4 class="font-medium mb-3" style="color:#FAF7F2;">Quick Links</h4>
+       <div class="space-y-2 text-sm">
+        <p class="cursor-pointer hover:text-white" onclick="navigateTo('products')">Products</p>
+        <p class="cursor-pointer hover:text-white" onclick="navigateTo('services')">Services</p>
+        <p class="cursor-pointer hover:text-white" onclick="navigateTo('tracking')">Tracking</p>
+       </div>
+      </div>
+      <div>
+       <h4 class="font-medium mb-3" style="color:#FAF7F2;">Connect</h4>
+       <div class="flex gap-3">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center cursor-pointer" style="background:rgba(250,247,242,0.1);">
+         <i data-lucide="twitter" style="width:16px;height:16px;"></i>
+        </div>
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center cursor-pointer" style="background:rgba(250,247,242,0.1);">
+         <i data-lucide="linkedin" style="width:16px;height:16px;"></i>
+        </div>
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center cursor-pointer" style="background:rgba(250,247,242,0.1);">
+         <i data-lucide="instagram" style="width:16px;height:16px;"></i>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="border-t pt-6 text-center text-xs" style="border-color:rgba(250,247,242,0.1);">
+      © 2025 TradeFlow. All rights reserved.
+     </div>
+    </div>
+   </footer>
+  </div>
+  <script>
+// ===== PRODUCT DATA =====
+const products = [
+  { id: 'P001', name: 'Wireless Sensor Module', category: 'Electronics', price: 89, seller: 'TechCore Ltd', desc: 'Industrial-grade wireless sensor with Bluetooth 5.0 and LoRa connectivity. IP67 rated for outdoor deployments. Battery life up to 3 years.', emoji: '📡' },
+  { id: 'P002', name: 'Organic Cotton Bales', category: 'Textiles', price: 320, seller: 'GreenWeave Co', desc: 'GOTS-certified organic cotton bales, ideal for sustainable fashion manufacturing. Sourced from rain-fed farms with minimal environmental impact.', emoji: '🧶' },
+  { id: 'P003', name: 'CNC Milling Machine', category: 'Machinery', price: 4500, seller: 'PrecisionWorks', desc: '3-axis CNC milling machine with 0.01mm precision. Suitable for metal, wood, and plastic machining. Includes software license.', emoji: '⚙️' },
+  { id: 'P004', name: 'Premium Coffee Beans', category: 'Agriculture', price: 45, seller: 'Highland Farms', desc: 'Single-origin Arabica beans from high-altitude estates. Medium roast profile with notes of chocolate and citrus. 5kg bags.', emoji: '☕' },
+  { id: 'P005', name: 'LED Display Panel', category: 'Electronics', price: 210, seller: 'BrightSign Tech', desc: 'P2.5 indoor LED display panel. High brightness, wide viewing angle, modular design for easy installation and maintenance.', emoji: '🖥️' },
+  { id: 'P006', name: 'Hydraulic Press 50T', category: 'Machinery', price: 7800, seller: 'IronForge Industries', desc: '50-ton hydraulic press for metal forming and stamping. Programmable stroke control with safety interlocks.', emoji: '🔧' },
+];
+
+// ===== STATE =====
+let allOrders = [];
+let currentProductId = null;
+let lastTrackingId = '';
+
+// ===== NAVIGATION =====
+function navigateTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(n => {
+    n.classList.toggle('active-nav', n.dataset.page === page);
+  });
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('app').scrollTop = 0;
+  if (page === 'products') renderProducts();
+  lucide.createIcons();
+}
+
+function toggleMobileMenu() {
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+
+// ===== PRODUCTS =====
+function renderProductCard(p) {
+  return `<div class="card-hover rounded-xl overflow-hidden" style="background:#fff; border:1px solid #E8E2D9;">
+    <div class="h-40 flex items-center justify-center text-5xl" style="background:linear-gradient(135deg,#FAF7F2,#E8E2D9);">${p.emoji}</div>
+    <div class="p-5">
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:rgba(224,122,47,0.1); color:#E07A2F;">${p.category}</span>
+      <h3 class="font-medium mt-2 mb-1">${p.name}</h3>
+      <p class="text-xs mb-3" style="color:#6B6560;">by ${p.seller}</p>
+      <div class="flex items-center justify-between">
+        <span class="font-heading font-bold text-lg" style="color:#E07A2F;">$${p.price}</span>
+        <button class="btn-primary px-4 py-2 rounded-lg text-xs font-medium" style="background:#2D2A26; color:#FAF7F2;" onclick="viewProduct('${p.id}')">View</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderProducts() {
+  const search = (document.getElementById('product-search')?.value || '').toLowerCase();
+  const cat = document.getElementById('category-filter')?.value || '';
+  const priceRange = document.getElementById('price-filter')?.value || '';
+  let filtered = products.filter(p => {
+    if (search && !p.name.toLowerCase().includes(search) && !p.category.toLowerCase().includes(search)) return false;
+    if (cat && p.category !== cat) return false;
+    if (priceRange) {
+      const [min, max] = priceRange.split('-').map(Number);
+      if (p.price < min || p.price > max) return false;
+    }
+    return true;
+  });
+  document.getElementById('products-grid').innerHTML = filtered.length
+    ? filtered.map(renderProductCard).join('')
+    : '<p class="col-span-full text-center py-12" style="color:#6B6560;">No products found.</p>';
+  lucide.createIcons();
+}
+
+function filterProducts() { renderProducts(); }
+
+function filterByCategory(cat) {
+  navigateTo('products');
+  document.getElementById('category-filter').value = cat;
+  renderProducts();
+}
+
+function viewProduct(id) {
+  currentProductId = id;
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('product-detail-content').innerHTML = `
+    <div class="rounded-xl h-64 sm:h-80 flex items-center justify-center text-7xl" style="background:linear-gradient(135deg,#FAF7F2,#E8E2D9);">${p.emoji}</div>
+    <div>
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:rgba(224,122,47,0.1); color:#E07A2F;">${p.category}</span>
+      <h1 class="font-heading text-2xl sm:text-3xl font-bold mt-3 mb-2">${p.name}</h1>
+      <p class="text-sm mb-4" style="color:#6B6560;">by ${p.seller}</p>
+      <p class="font-heading text-3xl font-bold mb-6" style="color:#E07A2F;">$${p.price}</p>
+      <p class="leading-relaxed mb-6" style="color:#6B6560;">${p.desc}</p>
+      <button class="btn-primary px-8 py-3 rounded-lg font-medium" style="background:#E07A2F; color:#fff;" onclick="startOrder('${p.id}')">Order Now</button>
+    </div>`;
+  const related = products.filter(x => x.category === p.category && x.id !== p.id).slice(0, 3);
+  document.getElementById('related-products').innerHTML = related.map(renderProductCard).join('') || '<p style="color:#6B6560;">No related products.</p>';
+  navigateTo('product-detail');
+}
+
+function startOrder(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('order-product-id').value = p.id;
+  document.getElementById('order-product-name').value = p.name;
+  document.getElementById('order-product-summary').innerHTML = `
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">${p.emoji}</span>
+      <div><p class="font-medium">${p.name}</p><p class="text-sm" style="color:#E07A2F;">$${p.price}</p></div>
+    </div>`;
+  document.getElementById('order-form').classList.remove('hidden');
+  document.getElementById('order-success').classList.add('hidden');
+  navigateTo('order');
+}
+
+// ===== ORDER SUBMISSION =====
+async function submitOrder(e) {
+  e.preventDefault();
+  const btn = document.getElementById('order-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Placing order...';
+
+  if (allOrders.length >= 999) {
+    showToast('Order limit reached. Please contact support.', '#dc2626');
+    btn.disabled = false; btn.textContent = 'Place Order';
+    return;
+  }
+
+  const trackingId = 'TF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  const result = await window.dataSdk.create({
+    type: 'order',
+    full_name: document.getElementById('order-name').value,
+    phone: document.getElementById('order-phone').value,
+    address: document.getElementById('order-address').value,
+    product_id: document.getElementById('order-product-id').value,
+    product_name: document.getElementById('order-product-name').value,
+    quantity: parseInt(document.getElementById('order-qty').value),
+    delivery_method: document.getElementById('order-delivery').value,
+    tracking_id: trackingId,
+    status: 'processing',
+    created_at: new Date().toISOString()
+  });
+
+  btn.disabled = false; btn.textContent = 'Place Order';
+
+  if (result.isOk) {
+    lastTrackingId = trackingId;
+    document.getElementById('order-form').classList.add('hidden');
+    document.getElementById('order-success').classList.remove('hidden');
+    document.getElementById('order-tracking-id').textContent = trackingId;
+    document.getElementById('order-form').reset();
+    lucide.createIcons();
+  } else {
+    showToast('Failed to place order. Please try again.', '#dc2626');
+  }
+}
+
+function goToTrackingWithId() {
+  navigateTo('tracking');
+  document.getElementById('tracking-input').value = lastTrackingId;
+  lookupTracking();
+}
+
+// ===== TRACKING =====
+function lookupTracking() {
+  const tid = document.getElementById('tracking-input').value.trim();
+  if (!tid) return;
+  const order = allOrders.find(o => o.tracking_id === tid);
+  const resultEl = document.getElementById('tracking-result');
+  const notFoundEl = document.getElementById('tracking-not-found');
+
+  if (!order) {
+    resultEl.classList.add('hidden');
+    notFoundEl.classList.remove('hidden');
+    lucide.createIcons();
+    return;
+  }
+
+  notFoundEl.classList.add('hidden');
+  resultEl.classList.remove('hidden');
+
+  const steps = ['processing', 'shipped', 'in_transit', 'delivered'];
+  const labels = { processing: 'Processing', shipped: 'Shipped', in_transit: 'In Transit', delivered: 'Delivered' };
+  const currentIdx = steps.indexOf(order.status || 'processing');
+  const createdDate = new Date(order.created_at);
+  const estDelivery = new Date(createdDate.getTime() + 5 * 86400000);
+
+  resultEl.innerHTML = `
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-heading font-bold text-lg">Order ${order.tracking_id}</h3>
+        <span class="text-xs px-2 py-1 rounded-full font-medium" style="background:rgba(224,122,47,0.1); color:#E07A2F;">${labels[order.status] || 'Processing'}</span>
+      </div>
+      <p class="text-sm" style="color:#6B6560;">${order.product_name} × ${order.quantity} · ${order.delivery_method}</p>
+      <p class="text-xs mt-1" style="color:#6B6560;">Est. delivery: ${estDelivery.toLocaleDateString()}</p>
+    </div>
+    <div class="pl-2">
+      ${steps.map((s, i) => `
+        <div class="tracking-step">
+          <div class="tracking-dot ${i < currentIdx ? 'completed' : i === currentIdx ? 'current' : ''}"></div>
+          <p class="font-medium text-sm ${i <= currentIdx ? '' : 'opacity-40'}">${labels[s]}</p>
+          <p class="text-xs" style="color:#6B6560;">${i <= currentIdx ? getStepDate(createdDate, i) : '—'}</p>
+        </div>
+      `).join('')}
+    </div>`;
+  lucide.createIcons();
+}
+
+function getStepDate(base, step) {
+  const d = new Date(base.getTime() + step * 86400000);
+  return d.toLocaleDateString();
+}
+
+// ===== CONTACT =====
+async function submitContact(e) {
+  e.preventDefault();
+  const btn = document.getElementById('contact-submit-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  if (allOrders.length >= 999) {
+    showToast('Storage limit reached.', '#dc2626');
+    btn.disabled = false; btn.textContent = 'Send Message';
+    return;
+  }
+
+  const result = await window.dataSdk.create({
+    type: 'contact',
+    contact_name: document.getElementById('contact-name').value,
+    contact_email: document.getElementById('contact-email').value,
+    contact_message: document.getElementById('contact-msg').value,
+    created_at: new Date().toISOString()
+  });
+
+  btn.disabled = false; btn.textContent = 'Send Message';
+
+  if (result.isOk) {
+    document.getElementById('contact-form').classList.add('hidden');
+    document.getElementById('contact-success').classList.remove('hidden');
+    document.getElementById('contact-form').reset();
+    lucide.createIcons();
+  } else {
+    showToast('Failed to send. Please try again.', '#dc2626');
+  }
+}
+
+// ===== QUOTE =====
+function submitQuote(e) {
+  e.preventDefault();
+  const weight = parseFloat(document.getElementById('quote-weight').value);
+  const type = document.getElementById('quote-type').value;
+  const multipliers = { standard: 2.5, fragile: 4, oversized: 5.5, temperature: 6 };
+  const price = (weight * (multipliers[type] || 2.5) + 15).toFixed(2);
+  document.getElementById('quote-price').textContent = '$' + price;
+  document.getElementById('quote-result').classList.remove('hidden');
+}
+
+// ===== TOAST =====
+function showToast(msg, color) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.background = color || '#E07A2F';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ===== FEATURED PRODUCTS =====
+function renderFeatured() {
+  document.getElementById('featured-products-grid').innerHTML = products.slice(0, 3).map(renderProductCard).join('');
+  lucide.createIcons();
+}
+
+// ===== DATA SDK =====
+const dataHandler = {
+  onDataChanged(data) {
+    allOrders = data;
+  }
+};
+
+// ===== ELEMENT SDK =====
+const defaultConfig = {
+  background_color: '#FAF7F2',
+  surface_color: '#FFFFFF',
+  text_color: '#2D2A26',
+  primary_action_color: '#E07A2F',
+  secondary_action_color: '#2D2A26',
+  font_family: 'DM Sans',
+  font_size: 16,
+  site_name: 'TradeFlow',
+  hero_headline: 'Global Trade, Simplified.',
+  hero_subtext: 'Buy, sell, and ship worldwide with our integrated trade and logistics platform. From product sourcing to doorstep delivery.',
+  about_mission: 'Connecting traders with reliable logistics to create a seamless global commerce experience. We believe trade should be accessible, transparent, and efficient for everyone.'
+};
+
+function applyConfig(config) {
+  const bg = config.background_color || defaultConfig.background_color;
+  const surface = config.surface_color || defaultConfig.surface_color;
+  const text = config.text_color || defaultConfig.text_color;
+  const primary = config.primary_action_color || defaultConfig.primary_action_color;
+  const secondary = config.secondary_action_color || defaultConfig.secondary_action_color;
+  const font = config.font_family || defaultConfig.font_family;
+  const size = config.font_size || defaultConfig.font_size;
+
+  document.body.style.background = bg;
+  document.body.style.color = text;
+  document.body.style.fontFamily = `${font}, DM Sans, sans-serif`;
+  document.body.style.fontSize = size + 'px';
+
+  // Nav
+  const nav = document.getElementById('main-nav');
+  nav.style.background = bg + 'f2';
+
+  // Surface elements
+  document.querySelectorAll('[style*="background:#fff"], [style*="background: #fff"]').forEach(el => {
+    el.style.background = surface;
+  });
+
+  // Primary action buttons
+  document.querySelectorAll('.btn-primary').forEach(btn => {
+    const s = btn.getAttribute('style') || '';
+    if (s.includes(defaultConfig.primary_action_color) || s.includes('background:#E07A2F') || s.includes('background: #E07A2F')) {
+      btn.style.background = primary;
+    } else if (s.includes(defaultConfig.secondary_action_color) || s.includes('background:#2D2A26') || s.includes('background: #2D2A26')) {
+      btn.style.background = secondary;
+    }
+  });
+
+  // Logo and accent color
+  const logo = document.getElementById('nav-logo');
+  if (logo) logo.style.color = primary;
+  const footerLogo = document.getElementById('footer-logo');
+  if (footerLogo) footerLogo.style.color = primary;
+
+  // Text content
+  const siteName = config.site_name || defaultConfig.site_name;
+  if (logo) logo.textContent = siteName;
+  if (footerLogo) footerLogo.textContent = siteName;
+
+  const headline = document.getElementById('hero-headline');
+  if (headline) headline.textContent = config.hero_headline || defaultConfig.hero_headline;
+
+  const subtext = document.getElementById('hero-subtext');
+  if (subtext) subtext.textContent = config.hero_subtext || defaultConfig.hero_subtext;
+
+  const mission = document.getElementById('about-mission');
+  if (mission) mission.textContent = config.about_mission || defaultConfig.about_mission;
+
+  // Headings
+  document.querySelectorAll('.font-heading').forEach(el => {
+    el.style.fontFamily = `Playfair Display, ${font}, serif`;
+  });
+
+  // Font size scaling
+  document.querySelectorAll('h1').forEach(el => el.style.fontSize = (size * 2) + 'px');
+  document.querySelectorAll('h2').forEach(el => el.style.fontSize = (size * 1.5) + 'px');
+  document.querySelectorAll('h3').forEach(el => el.style.fontSize = (size * 1.15) + 'px');
+}
+
+// Init
+(async () => {
+  // Element SDK
+  if (window.elementSdk) {
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => { applyConfig(config); },
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+          { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+          { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+          { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: (v) => { config.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); } },
+          { get: () => config.secondary_action_color || defaultConfig.secondary_action_color, set: (v) => { config.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); } },
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+        }
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ['site_name', config.site_name || defaultConfig.site_name],
+        ['hero_headline', config.hero_headline || defaultConfig.hero_headline],
+        ['hero_subtext', config.hero_subtext || defaultConfig.hero_subtext],
+        ['about_mission', config.about_mission || defaultConfig.about_mission],
+      ])
+    });
+  }
+
+  // Data SDK
+  if (window.dataSdk) {
+    await window.dataSdk.init(dataHandler);
+  }
+
+  renderFeatured();
+  renderProducts();
+  lucide.createIcons();
+})();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e4634ead693f5cf',t:'MTc3NDg2NDE5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
